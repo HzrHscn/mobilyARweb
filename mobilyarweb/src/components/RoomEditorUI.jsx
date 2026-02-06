@@ -1,169 +1,211 @@
-﻿import { useState, useEffect } from "react";
+﻿/* eslint-disable no-unused-vars */
+import { useState, useRef, useCallback } from "react";
 import RoomCanvas from "./RoomCanvas";
+import TopBar from "./topbar";
+import LeftToolbar from "./lefttoolbar";
+import RightPanel from "./rightpanel";
+import "./RoomEditorUI.css";
 
-export default function RoomEditorUI({ initialData }) {
-    // ← ÖNEMLİ: props olarak alıyoruz
-
-    const [mode, setMode] = useState("2D");
-    const [activeTool, setActiveTool] = useState("select");
-    const [tab, setTab] = useState("mimari");
+export default function RoomEditor({ initialData, onBack }) {
     const [projectName, setProjectName] = useState("İsimsiz Proje");
+    const [viewMode, setViewMode] = useState("2D");
+    const [activeTool, setActiveTool] = useState("select");
+    const [history, setHistory] = useState([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
+    const [walls, setWalls] = useState([]);
+    const [selectedWallId, setSelectedWallId] = useState(null);
+    const [doors, setDoors] = useState([]);
+    const [windows, setWindows] = useState([]);
+    const [radiators, setRadiators] = useState([]);
+    const [texts, setTexts] = useState([]);
+    const [shapes, setShapes] = useState([]);
+    const [measurements, setMeasurements] = useState([]);
 
-    // 🔹 Ölçüler — BAŞLANGIÇTA initialData’dan çekiyoruz
-    const [roomWidth, setRoomWidth] = useState(6);
-    const [roomDepth, setRoomDepth] = useState(4);
-    const [wallThickness, setWallThickness] = useState(0.24);
+    const canvasRef = useRef(null);
 
-    useEffect(() => {
-        if (initialData) {
-            setRoomWidth(initialData.width ?? 6);
-            setRoomDepth(initialData.depth ?? 4);
-            setWallThickness(initialData.wall ?? 0.24);
+    // Değişiklikleri kaydet (undo/redo için)
+    const saveToHistory = useCallback((newState) => {
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push(newState);
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
+    }, [history, historyIndex]);
+
+    // Geri al
+    const handleUndo = useCallback(() => {
+        if (historyIndex > 0) {
+            const prevState = history[historyIndex - 1];
+            setWalls(prevState.walls || []);
+            setDoors(prevState.doors || []);
+            setWindows(prevState.windows || []);
+            setRadiators(prevState.radiators || []);
+            setTexts(prevState.texts || []);
+            setShapes(prevState.shapes || []);
+            setMeasurements(prevState.measurements || []);
+            setHistoryIndex(historyIndex - 1);
         }
-    }, [initialData]);
+    }, [history, historyIndex]);
+
+    // İleri al
+    const handleRedo = useCallback(() => {
+        if (historyIndex < history.length - 1) {
+            const nextState = history[historyIndex + 1];
+            setWalls(nextState.walls || []);
+            setDoors(nextState.doors || []);
+            setWindows(nextState.windows || []);
+            setRadiators(nextState.radiators || []);
+            setTexts(nextState.texts || []);
+            setShapes(nextState.shapes || []);
+            setMeasurements(nextState.measurements || []);
+            setHistoryIndex(historyIndex + 1);
+        }
+    }, [history, historyIndex]);
+
+    // Kaydet
+    const handleSave = () => {
+        const data = {
+            projectName,
+            initialData,
+            walls,
+            doors,
+            windows,
+            radiators,
+            texts,
+            shapes,
+            measurements,
+            timestamp: new Date().toISOString()
+        };
+
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${projectName}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    // Yükle
+    const handleLoad = () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".json";
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        setProjectName(data.projectName || "İsimsiz Proje");
+                        setWalls(data.walls || []);
+                        setDoors(data.doors || []);
+                        setWindows(data.windows || []);
+                        setRadiators(data.radiators || []);
+                        setTexts(data.texts || []);
+                        setShapes(data.shapes || []);
+                        setMeasurements(data.measurements || []);
+                    } catch (err) {
+                        alert("Dosya yüklenirken hata oluştu!");
+                    }
+                };
+                reader.readAsText(file);
+            }
+        };
+        input.click();
+    };
+
+    // Ekrana sığdır
+    const handleFitToScreen = () => {
+        if (canvasRef.current) {
+            canvasRef.current.fitToScreen();
+        }
+    };
+
+    // Mimari eleman ekleme
+    const handleAddArchitecturalElement = (type) => {
+        const newElement = {
+            id: Date.now(),
+            type,
+            x: 0,
+            y: 0,
+            rotation: 0
+        };
+
+        switch (type) {
+            case "door":
+                setDoors([...doors, { ...newElement, width: 0.9 }]);
+                break;
+            case "window":
+                setWindows([...windows, { ...newElement, width: 1.2 }]);
+                break;
+            case "radiator":
+                setRadiators([...radiators, { ...newElement, width: 0.6 }]);
+                break;
+        }
+    };
 
     return (
-        <div style={{
-            position: "fixed",
-            inset: 0,
-            background: "#e5e5e5",
-            fontFamily: "Segoe UI, Arial, sans-serif"
-        }}>
+        <div className="room-editor">
+            <TopBar
+                projectName={projectName}
+                onProjectNameChange={setProjectName}
+                onUndo={handleUndo}
+                onRedo={handleRedo}
+                canUndo={historyIndex > 0}
+                canRedo={historyIndex < history.length - 1}
+                onSave={handleSave}
+                onLoad={handleLoad}
+                activeTool={activeTool}
+                onToolChange={setActiveTool}
+            />
 
-            {/* ÜST BAR */}
-            <div style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: "60px",
-                background: "white",
-                display: "flex",
-                alignItems: "center",
-                padding: "0 16px",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-                gap: "10px",
-                zIndex: 10
-            }}>
+            <LeftToolbar
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+                activeTool={activeTool}
+                onToolChange={setActiveTool}
+                onFitToScreen={handleFitToScreen}
+            />
 
-                <input
-                    value={projectName}
-                    onChange={e => setProjectName(e.target.value)}
-                    style={{
-                        border: "1px solid #ccc",
-                        borderRadius: "6px",
-                        padding: "6px 10px",
-                        width: "160px"
-                    }}
-                />
+            <RightPanel
+                onAddElement={handleAddArchitecturalElement}
+            />
 
-                <button>↩ Geri</button>
-                <button disabled>↪ İleri</button>
-                <button>📏 Metre</button>
-                <button>💾 Kaydet</button>
-                <button>📂 Yükle</button>
-            </div>
-
-            {/* SOL ARAÇ ÇUBUĞU */}
-            <div style={{
-                position: "absolute",
-                left: "12px",
-                top: "80px",
-                width: "70px",
-                background: "white",
-                borderRadius: "14px",
-                padding: "10px",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px"
-            }}>
-
-                <button
-                    onClick={() => setMode("2D")}
-                    style={{
-                        background: mode === "2D" ? "#8b0c6f" : "#eee",
-                        color: mode === "2D" ? "white" : "black"
-                    }}
-                >
-                    2D
-                </button>
-
-                <button
-                    onClick={() => setMode("3D")}
-                    style={{
-                        background: mode === "3D" ? "#8b0c6f" : "#eee",
-                        color: mode === "3D" ? "white" : "black"
-                    }}
-                >
-                    3D
-                </button>
-
-                <hr />
-
-                <button onClick={() => setActiveTool("select")}>Seç</button>
-                <button onClick={() => setActiveTool("move")}>Taşı</button>
-                <button onClick={() => setActiveTool("rotate")}>Döndür</button>
-                <button onClick={() => setActiveTool("pan")}>Pan</button>
-            </div>
-
-            {/* SAĞ PANEL — ARTIK SADECE MİMARİ ELEMANLAR */}
-            <div style={{
-                position: "absolute",
-                right: "12px",
-                top: "80px",
-                width: "240px",
-                background: "white",
-                borderRadius: "14px",
-                padding: "12px",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.15)"
-            }}>
-
-                <div style={{ display: "flex", marginBottom: "10px", gap: "6px" }}>
-                    <button onClick={() => setTab("mimari")} style={{ flex: 1 }}>
-                        Mimari
-                    </button>
-
-                    <button onClick={() => setTab("urun")} style={{ flex: 1 }}>
-                        Ürünler
-                    </button>
-                </div>
-
-                {tab === "mimari" && (
-                    <div>
-                        <p>🚪 Kapı</p>
-                        <p>🪟 Pencere</p>
-                        <p>🔥 Radyatör</p>
-                        <p>🧱 Kolon</p>
-                        <p>🪜 Merdiven</p>
-                    </div>
+            <div className="canvas-container">
+                {viewMode === "2D" && (
+                    <RoomCanvas
+                        ref={canvasRef}
+                        initialData={initialData}
+                        walls={walls}
+                        onWallsChange={setWalls}
+                        selectedWallId={selectedWallId}
+                        onWallSelect={setSelectedWallId}
+                        activeTool={activeTool}
+                        doors={doors}
+                        windows={windows}
+                        radiators={radiators}
+                        texts={texts}
+                        shapes={shapes}
+                        measurements={measurements}
+                        onDoorsChange={setDoors}
+                        onWindowsChange={setWindows}
+                        onRadiatorsChange={setRadiators}
+                        onTextsChange={setTexts}
+                        onShapesChange={setShapes}
+                        onMeasurementsChange={setMeasurements}
+                        saveToHistory={saveToHistory}
+                    />
                 )}
 
-                {tab === "urun" && (
-                    <div>
-                        <p>📦 (Modeller daha sonra eklenecek)</p>
+                {viewMode === "3D" && (
+                    <div className="canvas-3d-placeholder">
+                        <h2>3D Görünüm</h2>
+                        <p>3D görünüm yakında eklenecek...</p>
                     </div>
                 )}
             </div>
-
-            {/* MERKEZ ÇALIŞMA ALANI */}
-            <div style={{
-                position: "absolute",
-                top: "60px",
-                left: "100px",
-                right: "260px",
-                bottom: "60px",
-                background: "#dcdcdc",
-            }}>
-                <RoomCanvas
-                    mode={mode}
-                    roomShape={initialData?.shape || "rect"}
-                    width={roomWidth}
-                    depth={roomDepth}
-                    wall={wallThickness}
-                />
-            </div>
-
         </div>
     );
 }

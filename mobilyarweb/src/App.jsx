@@ -1,9 +1,10 @@
 ﻿import { useState } from "react";
 import InitialRoomSelector from "./components/InitialRoomSelector";
-import RoomEditorUI from "./components/RoomEditorUI";
+import RoomEditorUI from "./components/RoomEditorUI";   // <-- DÜZELTİLDİ
+import "./App.css";
 
 export default function App() {
-    const [step, setStep] = useState("initial"); // "initial" -> "editor" -> "done"
+    const [step, setStep] = useState("initial");
     const [roomConfig, setRoomConfig] = useState(null);
     const [initialData, setInitialData] = useState(null);
 
