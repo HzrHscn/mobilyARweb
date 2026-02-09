@@ -535,10 +535,9 @@ const Canvas2D = forwardRef(({
             className="canvas-2d"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onWheel={handleWheel}
-            style={{ cursor: isPanning ? "grabbing" : "default" }}
+            onMouseUp={() => setIsPanning(false)}
+            onWheel={(e) => setScale(prev => Math.max(10, prev * (e.deltaY > 0 ? 0.9 : 1.1)))}
+            style={{ cursor: isPanning ? "grabbing" : activeTool === "pan" ? "grab" : "default", width: '100%', height: '100%' }}
         />
     );
 });

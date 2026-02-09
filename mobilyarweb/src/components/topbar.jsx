@@ -1,6 +1,6 @@
-﻿import "./TopBar.css";
+﻿import "./topbar.css";
 
-export default function TopBar({
+export default function topbar({
     projectName,
     onProjectNameChange,
     onUndo,
@@ -14,89 +14,85 @@ export default function TopBar({
 }) {
     return (
         <div className="top-bar">
-            <div className="top-bar-left">
+            <div className="top-bar-group">
                 <input
                     type="text"
-                    className="project-name-input"
+                    className="project-name"
                     value={projectName}
                     onChange={(e) => onProjectNameChange(e.target.value)}
                     placeholder="İsimsiz Proje"
                 />
             </div>
 
-            <div className="top-bar-center">
+            <div className="top-bar-group">
                 <button
-                    className="toolbar-btn"
+                    className="top-btn"
                     onClick={onUndo}
                     disabled={!canUndo}
                     title="Geri Al (Ctrl+Z)"
                 >
                     <span className="btn-icon">↩</span>
-                    <span className="btn-label">Geri</span>
+                    Geri
                 </button>
 
                 <button
-                    className="toolbar-btn"
+                    className="top-btn"
                     onClick={onRedo}
                     disabled={!canRedo}
                     title="İleri Al (Ctrl+Y)"
                 >
                     <span className="btn-icon">↪</span>
-                    <span className="btn-label">İleri</span>
+                    İleri
                 </button>
 
-                <div className="toolbar-separator"></div>
+                <div className="separator"></div>
 
                 <button
-                    className={`toolbar-btn ${activeTool === "text" ? "active" : ""}`}
+                    className={`top-btn ${activeTool === "text" ? "active" : ""}`}
                     onClick={() => onToolChange("text")}
                     title="Metin Ekle"
                 >
                     <span className="btn-icon">A</span>
-                    <span className="btn-label">Metin</span>
+                    Metin
                 </button>
 
                 <button
-                    className={`toolbar-btn ${activeTool === "measure" ? "active" : ""}`}
+                    className={`top-btn ${activeTool === "measure" ? "active" : ""}`}
                     onClick={() => onToolChange("measure")}
                     title="Ölçüm"
                 >
                     <span className="btn-icon">📏</span>
-                    <span className="btn-label">Metre</span>
+                    Metre
                 </button>
 
                 <button
-                    className={`toolbar-btn ${activeTool === "shape" ? "active" : ""}`}
+                    className={`top-btn ${activeTool === "shape" ? "active" : ""}`}
                     onClick={() => onToolChange("shape")}
                     title="Şekil Çiz"
                 >
                     <span className="btn-icon">◻</span>
-                    <span className="btn-label">Şekiller</span>
+                    Şekiller
                 </button>
 
-                <div className="toolbar-separator"></div>
+                <div className="separator"></div>
 
                 <button
-                    className="toolbar-btn"
+                    className="top-btn"
                     onClick={onSave}
                     title="Kaydet"
                 >
                     <span className="btn-icon">💾</span>
-                    <span className="btn-label">Kaydet</span>
+                    Kaydet
                 </button>
 
                 <button
-                    className="toolbar-btn"
+                    className="top-btn"
                     onClick={onLoad}
                     title="Yükle"
                 >
                     <span className="btn-icon">📂</span>
-                    <span className="btn-label">Yükle</span>
+                    Yükle
                 </button>
-            </div>
-
-            <div className="top-bar-right">
-                {/* Buraya gelecekte ekstra özellikler eklenebilir */}
             </div>
         </div>
     );

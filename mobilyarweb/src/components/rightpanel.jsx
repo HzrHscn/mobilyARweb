@@ -1,9 +1,6 @@
-﻿import { useState } from "react";
-import "./RightPanel.css";
+﻿import "./rightpanel.css";
 
-export default function RightPanel({ onAddElement }) {
-    const [activeTab, setActiveTab] = useState("architecture");
-
+export default function rightpanel({ tab, onTabChange, onAddElement }) {
     const architecturalElements = [
         { id: "door", label: "Kapı", icon: "🚪" },
         { id: "window", label: "Pencere", icon: "🪟" },
@@ -16,21 +13,21 @@ export default function RightPanel({ onAddElement }) {
         <div className="right-panel">
             <div className="panel-tabs">
                 <button
-                    className={`tab-btn ${activeTab === "architecture" ? "active" : ""}`}
-                    onClick={() => setActiveTab("architecture")}
+                    className={`tab-btn ${tab === "mimari" ? "active" : ""}`}
+                    onClick={() => onTabChange("mimari")}
                 >
                     Mimari
                 </button>
                 <button
-                    className={`tab-btn ${activeTab === "products" ? "active" : ""}`}
-                    onClick={() => setActiveTab("products")}
+                    className={`tab-btn ${tab === "urun" ? "active" : ""}`}
+                    onClick={() => onTabChange("urun")}
                 >
                     Ürünler
                 </button>
             </div>
 
             <div className="panel-content">
-                {activeTab === "architecture" && (
+                {tab === "mimari" && (
                     <div className="elements-grid">
                         {architecturalElements.map((element) => (
                             <button
@@ -46,7 +43,7 @@ export default function RightPanel({ onAddElement }) {
                     </div>
                 )}
 
-                {activeTab === "products" && (
+                {tab === "urun" && (
                     <div className="products-placeholder">
                         <div className="placeholder-icon">📦</div>
                         <p>Ürün modelleri yakında eklenecek...</p>

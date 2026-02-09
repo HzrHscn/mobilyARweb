@@ -1,29 +1,80 @@
-﻿/* eslint-disable no-unused-vars */
-import { useState, useRef, useCallback } from "react";
+﻿/* eslint-disable react-hooks/immutability */
+/* eslint-disable no-unused-vars */
+import { useState, useRef, useCallback, useEffect } from "react";
+import TopBar from "./topbar.jsx";
+import LeftToolbar from "./lefttoolbar.jsx";
+import RightPanel from "./rightpanel.jsx";
 import RoomCanvas from "./RoomCanvas";
-import TopBar from "./topbar";
-import LeftToolbar from "./lefttoolbar";
-import RightPanel from "./rightpanel";
 import "./RoomEditorUI.css";
 
-export default function RoomEditor({ initialData, onBack }) {
+export default function RoomEditorUI({ initialData }) {
     const [projectName, setProjectName] = useState("İsimsiz Proje");
-    const [viewMode, setViewMode] = useState("2D");
+    const [mode, setMode] = useState("2D");
     const [activeTool, setActiveTool] = useState("select");
-    const [history, setHistory] = useState([]);
-    const [historyIndex, setHistoryIndex] = useState(-1);
+    const [tab, setTab] = useState("mimari");
+
+    // Duvar verileri
     const [walls, setWalls] = useState([]);
     const [selectedWallId, setSelectedWallId] = useState(null);
+
+    // Mimari elemanlar
     const [doors, setDoors] = useState([]);
     const [windows, setWindows] = useState([]);
     const [radiators, setRadiators] = useState([]);
+    const [columns, setColumns] = useState([]);
+    const [stairs, setStairs] = useState([]);
+
+    // Diğer elemanlar
     const [texts, setTexts] = useState([]);
     const [shapes, setShapes] = useState([]);
     const [measurements, setMeasurements] = useState([]);
 
+    // History (undo/redo)
+    const [history, setHistory] = useState([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
+
     const canvasRef = useRef(null);
 
-    // Değişiklikleri kaydet (undo/redo için)
+    // İlk duvarları oluştur
+    useEffect(() => {
+        if (walls.length === 0 && initialData) {
+            const { width, depth, wallThickness } = initialData;
+            const halfW = width / 2;
+            const halfD = depth / 2;
+
+            const initialWalls = [
+                {
+                    id: "wall-top",
+                    x1: -halfW, y1: halfD,
+                    x2: halfW, y2: halfD,
+                    thickness: wallThickness
+                },
+                {
+                    id: "wall-right",
+                    x1: halfW, y1: halfD,
+                    x2: halfW, y2: -halfD,
+                    thickness: wallThickness
+                },
+                {
+                    id: "wall-bottom",
+                    x1: halfW, y1: -halfD,
+                    x2: -halfW, y2: -halfD,
+                    thickness: wallThickness
+                },
+                {
+                    id: "wall-left",
+                    x1: -halfW, y1: -halfD,
+                    x2: -halfW, y2: halfD,
+                    thickness: wallThickness
+                }
+            ];
+
+            setWalls(initialWalls);
+            saveToHistory({ walls: initialWalls });
+        }
+    }, [initialData]);
+
+    // History kaydetme
     const saveToHistory = useCallback((newState) => {
         const newHistory = history.slice(0, historyIndex + 1);
         newHistory.push(newState);
@@ -70,6 +121,8 @@ export default function RoomEditor({ initialData, onBack }) {
             doors,
             windows,
             radiators,
+            columns,
+            stairs,
             texts,
             shapes,
             measurements,
@@ -103,6 +156,8 @@ export default function RoomEditor({ initialData, onBack }) {
                         setDoors(data.doors || []);
                         setWindows(data.windows || []);
                         setRadiators(data.radiators || []);
+                        setColumns(data.columns || []);
+                        setStairs(data.stairs || []);
                         setTexts(data.texts || []);
                         setShapes(data.shapes || []);
                         setMeasurements(data.measurements || []);
@@ -116,17 +171,23 @@ export default function RoomEditor({ initialData, onBack }) {
         input.click();
     };
 
-    // Ekrana sığdır
+    // --- SOL BAR FONKSİYONLARI ---
+    const handleZoom = (direction) => {
+        if (canvasRef.current && canvasRef.current.zoom) {
+            canvasRef.current.zoom(direction);
+        }
+    };
+
     const handleFitToScreen = () => {
-        if (canvasRef.current) {
+        if (canvasRef.current && canvasRef.current.fitToScreen) {
             canvasRef.current.fitToScreen();
         }
     };
 
     // Mimari eleman ekleme
-    const handleAddArchitecturalElement = (type) => {
+    const handleAddElement = (type) => {
         const newElement = {
-            id: Date.now(),
+            id: `${type}-${Date.now()}`,
             type,
             x: 0,
             y: 0,
@@ -143,11 +204,42 @@ export default function RoomEditor({ initialData, onBack }) {
             case "radiator":
                 setRadiators([...radiators, { ...newElement, width: 0.6 }]);
                 break;
+            case "column":
+                setColumns([...columns, { ...newElement, size: 0.3 }]);
+                break;
+            case "stairs":
+                setStairs([...stairs, { ...newElement, width: 1.0 }]);
+                break;
         }
     };
 
+    // Keyboard shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'z') {
+                    e.preventDefault();
+                    handleUndo();
+                } else if (e.key === 'y') {
+                    e.preventDefault();
+                    handleRedo();
+                }
+            }
+            if (e.key === 'v') {
+                setActiveTool('select');
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                setActiveTool('pan');
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleUndo, handleRedo]);
+
     return (
         <div className="room-editor">
+            {/* ÜST BAR */}
             <TopBar
                 projectName={projectName}
                 onProjectNameChange={setProjectName}
@@ -161,22 +253,30 @@ export default function RoomEditor({ initialData, onBack }) {
                 onToolChange={setActiveTool}
             />
 
-            <LeftToolbar
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                activeTool={activeTool}
-                onToolChange={setActiveTool}
-                onFitToScreen={handleFitToScreen}
-            />
+            <div className="main-layout">
 
-            <RightPanel
-                onAddElement={handleAddArchitecturalElement}
-            />
+                {/* SOL ARAÇ ÇUBUĞU */}
+                <LeftToolbar
+                    mode={mode}
+                    onModeChange={setMode}
+                    activeTool={activeTool}
+                    onToolChange={setActiveTool}
+                    onFitToScreen={handleFitToScreen}
+                    onZoom={handleZoom} // Yeni prop
+                />
 
-            <div className="canvas-container">
-                {viewMode === "2D" && (
+                {/* SAĞ PANEL */}
+                <RightPanel
+                    tab={tab}
+                    onTabChange={setTab}
+                    onAddElement={handleAddElement}
+                />
+
+                {/* KANVAS ALANI */}
+                <div className="canvas-container">
                     <RoomCanvas
                         ref={canvasRef}
+                        mode={mode}
                         initialData={initialData}
                         walls={walls}
                         onWallsChange={setWalls}
@@ -186,25 +286,22 @@ export default function RoomEditor({ initialData, onBack }) {
                         doors={doors}
                         windows={windows}
                         radiators={radiators}
+                        columns={columns}
+                        stairs={stairs}
                         texts={texts}
                         shapes={shapes}
                         measurements={measurements}
                         onDoorsChange={setDoors}
                         onWindowsChange={setWindows}
                         onRadiatorsChange={setRadiators}
+                        onColumnsChange={setColumns}
+                        onStairsChange={setStairs}
                         onTextsChange={setTexts}
                         onShapesChange={setShapes}
                         onMeasurementsChange={setMeasurements}
                         saveToHistory={saveToHistory}
                     />
-                )}
-
-                {viewMode === "3D" && (
-                    <div className="canvas-3d-placeholder">
-                        <h2>3D Görünüm</h2>
-                        <p>3D görünüm yakında eklenecek...</p>
-                    </div>
-                )}
+                </div>
             </div>
         </div>
     );

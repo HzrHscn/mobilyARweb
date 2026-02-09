@@ -1,37 +1,24 @@
 ﻿.room-editor {
+    display: flex;
+    flex-direction: column;
     width: 100vw;
     height: 100vh;
-    background: #e5e5e5;
-    position: relative;
+    background: #ffffff; /* pCon temiz beyaz arka plan */
     overflow: hidden;
+}
+
+.main-layout {
+    display: flex;
+    flex: 1; /* Üst bardan kalan her şeyi doldur */
+    flex-direction: row;
+    position: relative;
+    width: 100%;
 }
 
 .canvas-container {
-    position: absolute;
-    top: 65px;
-    left: 90px;
-    right: 270px;
-    bottom: 0;
-    background: #f8f8f8;
-    border-radius: 0;
+    flex: 1; /* Sol bar ve Sağ panel arasındaki tüm alanı kapla */
+    height: 100%;
+    background: #fdfdfd; /* Canvas zemini */
+    position: relative;
     overflow: hidden;
 }
-
-.canvas-3d-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #999;
-}
-
-    .canvas-3d-placeholder h2 {
-        font-size: 32px;
-        margin-bottom: 10px;
-    }
-
-    .canvas-3d-placeholder p {
-        font-size: 16px;
-    }

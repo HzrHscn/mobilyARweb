@@ -1,11 +1,10 @@
 ﻿import { useState } from "react";
 import InitialRoomSelector from "./components/InitialRoomSelector";
-import RoomEditorUI from "./components/RoomEditorUI";   // <-- DÜZELTİLDİ
+import RoomEditorUI from "./components/RoomEditorUI";
 import "./App.css";
 
 export default function App() {
     const [step, setStep] = useState("initial");
-    const [roomConfig, setRoomConfig] = useState(null);
     const [initialData, setInitialData] = useState(null);
 
     return (
@@ -19,21 +18,11 @@ export default function App() {
                 />
             )}
 
-            {step === "editor" && (
+            {step === "editor" && initialData && (
                 <RoomEditorUI
                     initialData={initialData}
-                    onStart={(data) => {
-                        setRoomConfig(data);
-                        setStep("done");
-                    }}
+                    onBack={() => setStep("initial")}
                 />
-            )}
-
-            {step === "done" && roomConfig && (
-                <div style={{ padding: 20 }}>
-                    <h2>ANA EKRAN (Şimdilik placeholder)</h2>
-                    <pre>{JSON.stringify(roomConfig, null, 2)}</pre>
-                </div>
             )}
         </>
     );
