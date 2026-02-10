@@ -1,4 +1,5 @@
-﻿/* eslint-disable no-undef */
+﻿/* eslint-disable no-unused-vars */
+import { useState } from "react";
 import "./lefttoolbar.css";
 
 export default function LeftToolbar({
@@ -7,94 +8,76 @@ export default function LeftToolbar({
     activeTool,
     onToolChange,
     onFitToScreen,
-    onZoom
+    onZoom,
+    onRotate
 }) {
     return (
-        <div className="left-toolbar">
-            {/* 2D-3D MODU */}
-            <div className="tool-section">
+        <div className="left-toolbar-fixed">
+            {/* GÖRÜNÜM MODLARI (2D/3D) */}
+            <div className="toolbar-section">
                 <button
-                    className={`tool-btn ${mode === "2D" ? "active" : ""}`}
+                    className={`toolbar-icon ${mode === "2D" ? "active" : ""}`}
                     onClick={() => onModeChange("2D")}
-                    title="2D Görünüm"
+                    title="2D Mimari Görünüm"
                 >
-                    2D
+                    <span className="mode-text">2D</span>
                 </button>
-
                 <button
-                    className={`tool-btn ${mode === "3D" ? "active" : ""}`}
+                    className={`toolbar-icon ${mode === "3D" ? "active" : ""}`}
                     onClick={() => onModeChange("3D")}
-                    title="3D Görünüm"
+                    title="3D Görselleştirme"
                 >
-                    3D
+                    <span className="mode-text">3D</span>
                 </button>
             </div>
 
-            <div className="tool-divider"></div>
+            <div className="toolbar-divider"></div>
 
-            {/* SEÇİM VE DÖNDÜRME */}
-            <div className="tool-section">
+            {/* ETKİLEŞİM ARAÇLARI */}
+            <div className="toolbar-section">
                 <button
-                    className={`tool-btn ${activeTool === "select" ? "active" : ""}`}
+                    className={`toolbar-icon ${activeTool === "select" ? "active" : ""}`}
                     onClick={() => onToolChange("select")}
-                    title="Seç (V)"
+                    title="Seç ve İşlem Yap"
                 >
-                    <span className="icon">↖</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z" />
+                    </svg>
                 </button>
 
                 <button
-                    className={`tool-btn ${activeTool === "rotate" ? "active" : ""}`}
-                    onClick={() => onToolChange("rotate")}
-                    title={mode === "2D" ? "Ekranı Döndür" : "Eksende Dön"}
+                    className={`toolbar-icon ${activeTool === "rotate" ? "active" : ""}`}
+                    onClick={() => {
+                        onToolChange("rotate");
+                        if (onRotate) onRotate();
+                    }}
+                    title={mode === "2D" ? "Ekranı Kaydır" : "Eksende Dön"}
                 >
-                    <span className="icon">↻</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0118.8-4.3M22 12.5a10 10 0 01-18.8 4.2" />
+                    </svg>
                 </button>
             </div>
 
-            <div className="tool-divider"></div>
+            <div className="toolbar-divider"></div>
 
-            {/* ZOOM VE FIT */}
-            <div className="tool-section">
-                <button
-                    className="tool-btn"
-                    onClick={() => onZoom("in")}
-                    title="Yakınlaştır (+)"
-                >
-                    <span className="icon">+</span>
+            {/* NAVİGASYON (ZOOM/FIT) */}
+            <div className="toolbar-section">
+                <button className="toolbar-icon" onClick={() => onZoom("in")} title="Yakınlaştır">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
                 </button>
-
-                <button
-                    className="tool-btn"
-                    onClick={onFitToScreen}
-                    title="Ekrana Sığdır"
-                >
-                    <span className="icon">⊡</span>
+                <button className="toolbar-icon" onClick={onFitToScreen} title="Ekrana Sığdır">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M15 3h6v6M9 21H3v-6M21 15v6h-6M3 9V3h6" />
+                    </svg>
                 </button>
-
-                <button
-                    className="tool-btn"
-                    onClick={() => onZoom("out")}
-                    title="Uzaklaştır (-)"
-                >
-                    <span className="icon">-</span>
+                <button className="toolbar-icon" onClick={() => onZoom("out")} title="Uzaklaştır">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
                 </button>
-            </div>
-            <div className="tool-section">
-
-                <button
-
-                    className={`tool-btn ${activeTool === "pan" ? "active" : ""}`}
-
-                    onClick={() => onToolChange("pan")}
-
-                    title="Kaydır (Space)"
-
-                >
-
-                    <span className="icon">🤚</span>
-
-                </button>
-
             </div>
         </div>
     );

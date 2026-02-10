@@ -1,39 +1,65 @@
-﻿.left-toolbar {
+﻿.left-toolbar-fixed {
     position: absolute;
     left: 20px;
     top: 50%;
     transform: translateY(-50%);
     width: 54px;
     background: #ffffff;
-    border: 1px solid #d1d1d1;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    padding: 10px 5px;
+    border-radius: 27px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 0;
+    gap: 12px;
+    z-index: 1000;
+    border: 1px solid #e0e0e0;
+}
+
+.toolbar-section {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    z-index: 1000;
 }
 
-.tool-btn {
-    width: 44px;
-    height: 44px;
+.toolbar-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     border: none;
-    background: transparent;
+    background: #f8f8f8;
     cursor: pointer;
-    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    color: #555;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #444;
 }
 
-    .tool-btn.active {
-        background: #005a9e; /* Profesyonel mavi */
-        color: white;
+    .toolbar-icon svg {
+        width: 20px;
+        height: 20px;
     }
 
-    .tool-btn:hover:not(.active) {
-        background: #f0f0f0;
-    }
+.mode-text {
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.toolbar-icon:hover {
+    background: #f0f0f0;
+    transform: scale(1.05);
+}
+
+.toolbar-icon.active {
+    background: #8b0c6f;
+    color: white;
+    box-shadow: 0 4px 12px rgba(139, 12, 111, 0.3);
+}
+
+.toolbar-divider {
+    width: 24px;
+    height: 1px;
+    background: #eeeeee;
+    margin: 4px 0;
+}

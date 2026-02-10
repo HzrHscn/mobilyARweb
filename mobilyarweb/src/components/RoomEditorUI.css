@@ -1,24 +1,31 @@
 ﻿.room-editor {
-    display: flex;
-    flex-direction: column;
     width: 100vw;
     height: 100vh;
-    background: #ffffff; /* pCon temiz beyaz arka plan */
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
     overflow: hidden;
+    position: relative;
 }
 
 .main-layout {
     display: flex;
-    flex: 1; /* Üst bardan kalan her şeyi doldur */
-    flex-direction: row;
+    flex: 1;
     position: relative;
     width: 100%;
+    height: calc(100vh - 65px);
 }
 
 .canvas-container {
-    flex: 1; /* Sol bar ve Sağ panel arasındaki tüm alanı kapla */
-    height: 100%;
-    background: #fdfdfd; /* Canvas zemini */
-    position: relative;
-    overflow: hidden;
+    position: absolute;
+    inset: 0; /* Arka planın tamamını kaplar */
+    background: #ffffff;
+    z-index: 1;
+}
+
+/* Sol ve Sağ panellerin Canvas üzerinde sabitlenmesi */
+.left-toolbar-fixed,
+.right-toolbar-fixed,
+.right-drawer-container {
+    z-index: 100;
 }

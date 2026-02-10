@@ -1,55 +1,118 @@
-﻿import "./rightpanel.css";
+﻿/* eslint-disable no-unused-vars */
+import { useState } from "react";
+import "./rightpanel.css";
 
-export default function rightpanel({ tab, onTabChange, onAddElement }) {
+export default function RightPanel({ tab, onTabChange, onAddElement }) {
+    const [showMimariDrawer, setShowMimariDrawer] = useState(false);
+    const [showKatalogDrawer, setShowKatalogDrawer] = useState(false);
+
     const architecturalElements = [
+        { id: "wall", label: "Duvar çiz", icon: "⬜" },
+        { id: "opening", label: "Açıklık", icon: "📐" },
         { id: "door", label: "Kapı", icon: "🚪" },
         { id: "window", label: "Pencere", icon: "🪟" },
-        { id: "radiator", label: "Radyatör", icon: "🔥" },
-        { id: "column", label: "Kolon", icon: "🧱" },
-        { id: "stairs", label: "Merdiven", icon: "🪜" }
+        { id: "double-door", label: "Çift Kanat Kapı", icon: "🚪🚪" },
+        { id: "glass-door", label: "Cam kapı", icon: "🚪" },
+        { id: "glass-panel", label: "Cam Cephe", icon: "🪟" },
+        { id: "round-window", label: "Yuvarlak pencere", icon: "⭕" },
+        { id: "column", label: "Yuvarlak kolon", icon: "🔘" },
+        { id: "square-column", label: "Kare kolon", icon: "⬛" },
+        { id: "radiator", label: "Radyatör", icon: "🔥" }
     ];
 
+    const handleElementClick = (elementId) => {
+        console.log("Element clicked:", elementId);
+        if (onAddElement) {
+            onAddElement(elementId);
+        }
+        setShowMimariDrawer(false);
+        setShowKatalogDrawer(false);
+    };
+
     return (
-        <div className="right-panel">
-            <div className="panel-tabs">
+        <>
+            {/* SABİT YUVARLAK İKONLAR */}
+            <div className="right-toolbar-fixed">
                 <button
-                    className={`tab-btn ${tab === "mimari" ? "active" : ""}`}
-                    onClick={() => onTabChange("mimari")}
+                    className={`toolbar-icon-right ${showMimariDrawer ? "active" : ""}`}
+                    onClick={() => {
+                        setShowMimariDrawer(!showMimariDrawer);
+                        setShowKatalogDrawer(false);
+                    }}
+                    title="Mimari"
                 >
-                    Mimari
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg>
                 </button>
+
                 <button
-                    className={`tab-btn ${tab === "urun" ? "active" : ""}`}
-                    onClick={() => onTabChange("urun")}
+                    className={`toolbar-icon-right ${showKatalogDrawer ? "active" : ""}`}
+                    onClick={() => {
+                        setShowKatalogDrawer(!showKatalogDrawer);
+                        setShowMimariDrawer(false);
+                    }}
+                    title="Katalog"
                 >
-                    Ürünler
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                        <path d="M9 22V12h6v10" />
+                    </svg>
                 </button>
             </div>
 
-            <div className="panel-content">
-                {tab === "mimari" && (
-                    <div className="elements-grid">
+            {/* MİMARİ DRAWER */}
+            {showMimariDrawer && (
+                <div className="right-drawer">
+                    <div className="drawer-header">
+                        <h3>Mimari</h3>
+                        <button
+                            className="drawer-close"
+                            onClick={() => setShowMimariDrawer(false)}
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    <div className="drawer-content">
                         {architecturalElements.map((element) => (
                             <button
                                 key={element.id}
-                                className="element-btn"
-                                onClick={() => onAddElement(element.id)}
-                                title={element.label}
+                                className="drawer-item"
+                                onClick={() => handleElementClick(element.id)}
                             >
-                                <span className="element-icon">{element.icon}</span>
-                                <span className="element-label">{element.label}</span>
+                                <span className="drawer-item-icon">{element.icon}</span>
+                                <span className="drawer-item-label">{element.label}</span>
                             </button>
                         ))}
                     </div>
-                )}
+                </div>
+            )}
 
-                {tab === "urun" && (
-                    <div className="products-placeholder">
-                        <div className="placeholder-icon">📦</div>
-                        <p>Ürün modelleri yakında eklenecek...</p>
+            {/* KATALOG DRAWER */}
+            {showKatalogDrawer && (
+                <div className="right-drawer">
+                    <div className="drawer-header">
+                        <h3>Katalog</h3>
+                        <button
+                            className="drawer-close"
+                            onClick={() => setShowKatalogDrawer(false)}
+                        >
+                            ✕
+                        </button>
                     </div>
-                )}
-            </div>
-        </div>
+
+                    <div className="drawer-content">
+                        <div className="catalog-placeholder">
+                            <div className="placeholder-icon">📦</div>
+                            <p>Ürün modelleri yakında eklenecek...</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 }
