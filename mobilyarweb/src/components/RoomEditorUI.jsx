@@ -14,7 +14,6 @@ export default function RoomEditorUI({ initialData }) {
     const [activeTool, setActiveTool] = useState("select");
     const [tab, setTab] = useState("mimari");
 
-    // DURUM YÖNETİMİ
     const [walls, setWalls] = useState([]);
     const [selectedWallId, setSelectedWallId] = useState(null);
     const [doors, setDoors] = useState([]);
@@ -25,15 +24,15 @@ export default function RoomEditorUI({ initialData }) {
     const [texts, setTexts] = useState([]);
     const [shapes, setShapes] = useState([]);
     const [measurements, setMeasurements] = useState([]);
+    const [floorColor, setFloorColor] = useState("#e8e8e8");
 
-    // GEÇMİŞ YÖNETİMİ
     const [history, setHistory] = useState([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
+    const lastWallsRef = useRef(null);
 
     const canvasRef = useRef(null);
     const sceneRef = useRef(null);
 
-    // İlk kurulum - Duvarları oluştur
     useEffect(() => {
         if (walls.length === 0 && initialData) {
             const { width, depth, wallThickness } = initialData;
@@ -49,6 +48,8 @@ export default function RoomEditorUI({ initialData }) {
             ];
 
             setWalls(initialWalls);
+            lastWallsRef.current = JSON.stringify(initialWalls);
+
             const initialState = {
                 walls: initialWalls,
                 doors: [],
@@ -58,14 +59,14 @@ export default function RoomEditorUI({ initialData }) {
                 stairs: [],
                 texts: [],
                 shapes: [],
-                measurements: []
+                measurements: [],
+                floorColor: "#e8e8e8"
             };
             setHistory([initialState]);
             setHistoryIndex(0);
         }
     }, [initialData]);
 
-    // Geçmişe kaydet
     const saveToHistory = useCallback((newState) => {
         const currentData = {
             walls: newState.walls !== undefined ? newState.walls : walls,
@@ -76,42 +77,42 @@ export default function RoomEditorUI({ initialData }) {
             stairs: newState.stairs !== undefined ? newState.stairs : stairs,
             texts: newState.texts !== undefined ? newState.texts : texts,
             shapes: newState.shapes !== undefined ? newState.shapes : shapes,
-            measurements: newState.measurements !== undefined ? newState.measurements : measurements
+            measurements: newState.measurements !== undefined ? newState.measurements : measurements,
+            floorColor: newState.floorColor !== undefined ? newState.floorColor : floorColor
         };
 
-        // Aynı state'i tekrar ekleme
-        if (historyIndex >= 0 && historyIndex < history.length) {
-            const lastState = history[historyIndex];
-            if (JSON.stringify(lastState) === JSON.stringify(currentData)) {
-                return;
-            }
+        const currentWallsStr = JSON.stringify(currentData.walls);
+
+        if (currentWallsStr === lastWallsRef.current && historyIndex >= 0) {
+            return;
         }
+
+        lastWallsRef.current = currentWallsStr;
 
         const newHistory = history.slice(0, historyIndex + 1);
         newHistory.push(JSON.parse(JSON.stringify(currentData)));
         setHistory(newHistory);
         setHistoryIndex(newHistory.length - 1);
-    }, [history, historyIndex, walls, doors, windows, radiators, columns, stairs, texts, shapes, measurements]);
+    }, [history, historyIndex, walls, doors, windows, radiators, columns, stairs, texts, shapes, measurements, floorColor]);
 
-    // Geri al
     const handleUndo = useCallback(() => {
         if (historyIndex > 0) {
             const prevState = history[historyIndex - 1];
             updateAllStates(prevState);
             setHistoryIndex(historyIndex - 1);
+            lastWallsRef.current = JSON.stringify(prevState.walls);
         }
     }, [history, historyIndex]);
 
-    // İleri al
     const handleRedo = useCallback(() => {
         if (historyIndex < history.length - 1) {
             const nextState = history[historyIndex + 1];
             updateAllStates(nextState);
             setHistoryIndex(historyIndex + 1);
+            lastWallsRef.current = JSON.stringify(nextState.walls);
         }
     }, [history, historyIndex]);
 
-    // Tüm state'leri güncelle
     const updateAllStates = (state) => {
         setWalls(state.walls || []);
         setDoors(state.doors || []);
@@ -122,15 +123,27 @@ export default function RoomEditorUI({ initialData }) {
         setTexts(state.texts || []);
         setShapes(state.shapes || []);
         setMeasurements(state.measurements || []);
+        setFloorColor(state.floorColor || "#e8e8e8");
     };
 
-    // Duvarları güncelle ve geçmişe kaydet
     const handleWallsChange = useCallback((newWalls) => {
         setWalls(newWalls);
-        saveToHistory({ walls: newWalls });
-    }, [saveToHistory]);
+    }, []);
 
-    // DOSYA İŞLEMLERİ
+    useEffect(() => {
+        const handleMouseUp = () => {
+            if (walls.length > 0) {
+                const currentStr = JSON.stringify(walls);
+                if (currentStr !== lastWallsRef.current) {
+                    saveToHistory({ walls });
+                }
+            }
+        };
+
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => window.removeEventListener('mouseup', handleMouseUp);
+    }, [walls, saveToHistory]);
+
     const handleSave = () => {
         const data = {
             projectName,
@@ -144,6 +157,7 @@ export default function RoomEditorUI({ initialData }) {
             texts,
             shapes,
             measurements,
+            floorColor,
             timestamp: new Date().toISOString()
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -179,7 +193,6 @@ export default function RoomEditorUI({ initialData }) {
         input.click();
     };
 
-    // ZOOM VE FIT FONKSİYONLARI
     const handleZoom = (direction) => {
         if (mode === "2D" && canvasRef.current) {
             canvasRef.current.zoom(direction);
@@ -196,27 +209,38 @@ export default function RoomEditorUI({ initialData }) {
         }
     };
 
-    // ELEMAN EKLEME
     const handleAddElement = (type) => {
         console.log("Adding element:", type);
 
-        const newElement = { id: `${type}-${Date.now()}`, type, x: 0, y: 0, rotation: 0 };
+        const centerX = 0;
+        const centerY = 0;
+
+        const newElement = {
+            id: `${type}-${Date.now()}`,
+            type,
+            x: centerX,
+            y: centerY,
+            rotation: 0
+        };
 
         switch (type) {
             case "door":
-                const newDoors = [...doors, { ...newElement, width: 0.9 }];
+                const newDoors = [...doors, { ...newElement, width: 0.9, height: 2.1 }];
                 setDoors(newDoors);
                 saveToHistory({ doors: newDoors });
+                console.log("Kapı eklendi:", newElement);
                 break;
             case "window":
-                const newWindows = [...windows, { ...newElement, width: 1.2 }];
+                const newWindows = [...windows, { ...newElement, width: 1.2, height: 1.2 }];
                 setWindows(newWindows);
                 saveToHistory({ windows: newWindows });
+                console.log("Pencere eklendi:", newElement);
                 break;
             case "radiator":
-                const newRadiators = [...radiators, { ...newElement, width: 0.6 }];
+                const newRadiators = [...radiators, { ...newElement, width: 0.6, height: 0.6 }];
                 setRadiators(newRadiators);
                 saveToHistory({ radiators: newRadiators });
+                console.log("Radyatör eklendi:", newElement);
                 break;
             case "column":
             case "round-column":
@@ -231,10 +255,14 @@ export default function RoomEditorUI({ initialData }) {
                 saveToHistory({ stairs: newStairs });
                 break;
             case "wall":
-                setActiveTool("draw-wall");
+                setActiveTool("select");
+                // Yeni duvar eklemek için + butonuna basılmalı
+                console.log("Duvar çizmek için bir duvarı seçin ve + butonuna basın");
                 break;
             case "opening":
-                console.log("Açıklık ekleniyor");
+                const newOpening = { ...newElement, width: 1.0 };
+                setWindows([...windows, newOpening]);
+                saveToHistory({ windows: [...windows, newOpening] });
                 break;
             default:
                 console.log("Bilinmeyen eleman tipi:", type);
@@ -242,11 +270,9 @@ export default function RoomEditorUI({ initialData }) {
         }
     };
 
-    // ARAÇ DEĞİŞİKLİĞİ - Metin, Şekil, Ölçü için
     const handleToolChange = (tool) => {
         setActiveTool(tool);
 
-        // Metin, şekil veya ölçü ekleme
         if (tool === 'text') {
             const newText = {
                 id: `text-${Date.now()}`,
@@ -260,7 +286,6 @@ export default function RoomEditorUI({ initialData }) {
             const newTexts = [...texts, newText];
             setTexts(newTexts);
             saveToHistory({ texts: newTexts });
-            console.log("Metin eklendi");
         } else if (tool === 'shape') {
             const newShape = {
                 id: `shape-${Date.now()}`,
@@ -274,23 +299,11 @@ export default function RoomEditorUI({ initialData }) {
             const newShapes = [...shapes, newShape];
             setShapes(newShapes);
             saveToHistory({ shapes: newShapes });
-            console.log("Şekil eklendi");
         } else if (tool === 'measure') {
-            const newMeasure = {
-                id: `measure-${Date.now()}`,
-                x1: -1,
-                y1: 0,
-                x2: 1,
-                y2: 0
-            };
-            const newMeasurements = [...measurements, newMeasure];
-            setMeasurements(newMeasurements);
-            saveToHistory({ measurements: newMeasurements });
-            console.log("Ölçü eklendi");
+            console.log("Ölçü aracı aktif");
         }
     };
 
-    // KLAVYE KISAYOLLARI
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.ctrlKey || e.metaKey) {
@@ -329,7 +342,6 @@ export default function RoomEditorUI({ initialData }) {
 
     return (
         <div className="room-editor">
-            {/* ÜST BAR */}
             <TopBar
                 projectName={projectName}
                 onProjectNameChange={setProjectName}
@@ -344,7 +356,6 @@ export default function RoomEditorUI({ initialData }) {
             />
 
             <div className="main-layout">
-                {/* SOL ARAÇ ÇUBUĞU */}
                 <LeftToolbar
                     mode={mode}
                     onModeChange={setMode}
@@ -355,7 +366,6 @@ export default function RoomEditorUI({ initialData }) {
                     onRotate={() => mode === "2D" ? setActiveTool("pan") : null}
                 />
 
-                {/* KANVAS / VIEWPORT ALANI */}
                 <div className="canvas-container">
                     {mode === "2D" ? (
                         <WallEditor2D
@@ -369,6 +379,17 @@ export default function RoomEditorUI({ initialData }) {
                             doors={doors}
                             windows={windows}
                             radiators={radiators}
+                            texts={texts}
+                            shapes={shapes}
+                            measurements={measurements}
+                            onDoorsChange={setDoors}
+                            onWindowsChange={setWindows}
+                            onRadiatorsChange={setRadiators}
+                            onTextsChange={setTexts}
+                            onShapesChange={setShapes}
+                            onMeasurementsChange={setMeasurements}
+                            floorColor={floorColor}
+                            onFloorColorChange={setFloorColor}
                             saveToHistory={saveToHistory}
                         />
                     ) : (
@@ -386,7 +407,6 @@ export default function RoomEditorUI({ initialData }) {
                     )}
                 </div>
 
-                {/* SAĞ PANEL */}
                 <RightPanel
                     tab={tab}
                     onTabChange={setTab}
