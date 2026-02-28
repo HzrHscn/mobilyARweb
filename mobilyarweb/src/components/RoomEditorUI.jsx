@@ -24,7 +24,8 @@ export default function RoomEditorUI({ initialData }) {
     const [texts, setTexts] = useState([]);
     const [shapes, setShapes] = useState([]);
     const [measurements, setMeasurements] = useState([]);
-    const [floorColor, setFloorColor] = useState("#e8e8e8");
+    const [floorColor, setFloorColor] = useState("#c8a86e");
+    const [floorScale, setFloorScale] = useState({ x: 1, y: 1 }); // zemin scale state
 
     const [history, setHistory] = useState([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
@@ -403,6 +404,7 @@ export default function RoomEditorUI({ initialData }) {
                             selectedWallId={selectedWallId}
                             onWallSelect={setSelectedWallId}
                             onWallsChange={handleWallsChange}
+                            floorColor={floorColor}
                         />
                     )}
                 </div>

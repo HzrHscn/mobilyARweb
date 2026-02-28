@@ -115,3 +115,116 @@
     .dimension-btn:active {
         transform: translateY(0);
     }
+
+/* Placement banner */
+.placement-banner {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20, 20, 20, 0.88);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    z-index: 200;
+    pointer-events: none;
+}
+
+.placement-icon {
+    font-size: 20px;
+}
+
+.placement-banner kbd {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-size: 12px;
+    font-family: monospace;
+}
+
+/* Element toolbar */
+.element-toolbar {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    z-index: 200;
+}
+
+.el-toolbar-label {
+    font-size: 12px;
+    color: #888;
+    margin-right: 4px;
+}
+
+.el-toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background: #e0e0e0;
+    margin: 0 4px;
+}
+
+.el-tool-btn {
+    padding: 5px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    background: #f8f8f8;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+    .el-tool-btn:hover {
+        background: #f0e8ff;
+        border-color: #8b0c6f;
+    }
+
+    .el-tool-btn.accent {
+        background: #8b0c6f;
+        color: #fff;
+        border-color: #8b0c6f;
+    }
+
+        .el-tool-btn.accent:hover {
+            background: #6b0a57;
+        }
+
+    .el-tool-btn.danger {
+        color: #cc2200;
+    }
+
+        .el-tool-btn.danger:hover {
+            background: #fff0ee;
+            border-color: #cc2200;
+        }
+
+.shift-indicator {
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,180,60,0.85);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    pointer-events: none;
+}
