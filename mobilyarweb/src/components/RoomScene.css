@@ -1,14 +1,17 @@
 ﻿.room-scene {
     width: 100%;
     height: 100%;
-    background-color: #ffffff; /* pCon temiz beyaz zemin */
+    background-color: #d8d4cc;
     position: relative;
     overflow: hidden;
 }
 
-    .room-scene canvas {
-        touch-action: none; /* Mobil uyumluluk için */
-    }
+.room-scene canvas {
+    touch-action: none;
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
 
 .room-scene-placeholder {
     width: 100%;
@@ -18,11 +21,11 @@
     align-items: center;
     justify-content: center;
     color: #8b0c6f;
-    background: #f8f8f8;
+    background: #f0ece4;
     font-family: sans-serif;
 }
 
-    .room-scene-placeholder h2 {
-        margin-bottom: 10px;
-        font-weight: 800;
-    }
+.room-scene-placeholder h2 {
+    margin-bottom: 10px;
+    font-weight: 800;
+}
